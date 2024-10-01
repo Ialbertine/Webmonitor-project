@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: webmon
+      POSTGRES_PASSWORD: safedb12!
+      POSTGRES_DB: WebmonDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  backend:
+    build:
+      context: ./backend  # Pointing to backend folder
+      dockerfile: Dockerfile  # Backend Dockerfile location
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db  # Ensure backend starts after db
+    environment:
+      - DB_USER=webmon
+      - DB_PASSWORD=safedb12!
+      - DB_NAME=WebmonDB
+    networks:
+      - mynetwork
+
+volumes:
+  pgdata:
+
+networks:
+  mynetwork:
+    driver: bridge
