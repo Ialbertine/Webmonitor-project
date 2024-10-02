@@ -1,6 +1,8 @@
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
+const axios = require('axios');
+const cron = require('node-cron');
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -72,9 +74,6 @@ const resolvers = {
 const app = express();
 app.use(express.json());  // Middleware to parse JSON bodies
 
-// Create an Apollo Server with GraphQL schema and resolvers
-const server = new ApolloServer({ typeDefs, resolvers });
-
 // REST API Endpoints
 
 // GET /websites: Retrieve the list of websites
@@ -127,14 +126,38 @@ app.get('/websites/:id/status', async (req, res) => {
   }
 });
 
+// Create an Apollo Server with GraphQL schema and resolvers
+const apolloServer = new ApolloServer({ typeDefs, resolvers });
+
+// Function to check website status periodically
+const checkWebsiteStatus = async () => {
+  try {
+    const websites = await pool.query('SELECT * FROM websites');
+    for (const website of websites.rows) {
+      try {
+        const response = await axios.get(website.url);
+        const status = response.status === 200 ? 'online' : 'offline';
+        await pool.query('UPDATE websites SET status = $1 WHERE id = $2', [status, website.id]);
+      } catch (err) {
+        await pool.query('UPDATE websites SET status = $1 WHERE id = $2', ['offline', website.id]);
+      }
+    }
+  } catch (err) {
+    console.error('Error checking website status:', err);
+  }
+};
+
+// Set up cron job to run the status check every minute
+cron.schedule('* * * * *', checkWebsiteStatus);
+
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
-  await server.start();
-  server.applyMiddleware({ app });
+  await apolloServer.start();
+  apolloServer.applyMiddleware({ app });
 
   // Start the Express server
   app.listen({ port: 5000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:5000${server.graphqlPath}`)
+    console.log(`🚀 Server ready at http://localhost:5000${apolloServer.graphqlPath}`)
   );
 }
 
