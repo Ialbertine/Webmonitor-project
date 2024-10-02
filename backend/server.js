@@ -6,14 +6,14 @@ const cron = require('node-cron');
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
-  user: 'webmon',            
-  host: 'db',                
-  database: 'WebmonDB',      
-  password: 'safedb12!',    
-  port: 5432,                
+  user: 'webmon',
+  host: 'db',
+  database: 'WebmonDB',
+  password: 'safedb12!',
+  port: 5432,
 });
 
-// Sample GraphQL schema definition
+// GraphQL schema definition
 const typeDefs = gql`
   type Website {
     id: ID!
@@ -24,6 +24,7 @@ const typeDefs = gql`
 
   type Query {
     websites: [Website]
+    getWebsiteStatus(id: ID!): Website
   }
 
   type Mutation {
@@ -43,6 +44,16 @@ const resolvers = {
         console.error(err);
         throw new Error('Error fetching websites');
       }
+    },
+    getWebsiteStatus: async (_, { id }) => {
+      try {
+        const res = await pool.query('SELECT * FROM websites WHERE id = $1', [id]);
+        if (res.rows.length === 0) throw new Error('Website not found');
+        return res.rows[0];
+      } catch (err) {
+        console.error(err);
+        throw new Error('Error fetching website status');
+      }
     }
   },
   Mutation: {
@@ -60,8 +71,8 @@ const resolvers = {
     },
     deleteWebsite: async (_, { id }) => {
       try {
-        await pool.query('DELETE FROM websites WHERE id = $1', [id]);
-        return true;
+        const res = await pool.query('DELETE FROM websites WHERE id = $1 RETURNING *', [id]);
+        return res.rowCount > 0;
       } catch (err) {
         console.error(err);
         throw new Error('Error deleting website');
@@ -69,65 +80,6 @@ const resolvers = {
     }
   }
 };
-
-// Create an Express application
-const app = express();
-app.use(express.json());  // Middleware to parse JSON bodies
-
-// REST API Endpoints
-
-// GET /websites: Retrieve the list of websites
-app.get('/websites', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM websites');
-    res.json(result.rows);
-  } catch (err) {
-    res.status(500).json({ error: 'Error fetching websites' });
-  }
-});
-
-// POST /websites: Add a new website
-app.post('/websites', async (req, res) => {
-  const { name, url } = req.body;
-  try {
-    const result = await pool.query(
-      'INSERT INTO websites (name, url, status) VALUES ($1, $2, $3) RETURNING *',
-      [name, url, 'unknown']
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    res.status(500).json({ error: 'Error adding website' });
-  }
-});
-
-// DELETE /websites/:id: Remove a website
-app.delete('/websites/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await pool.query('DELETE FROM websites WHERE id = $1', [id]);
-    res.status(204).send();
-  } catch (err) {
-    res.status(500).json({ error: 'Error deleting website' });
-  }
-});
-
-// GET /websites/:id/status: Check the status of a specific website
-app.get('/websites/:id/status', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query('SELECT status FROM websites WHERE id = $1', [id]);
-    if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Website not found' });
-    } else {
-      res.json(result.rows[0]);
-    }
-  } catch (err) {
-    res.status(500).json({ error: 'Error fetching website status' });
-  }
-});
-
-// Create an Apollo Server with GraphQL schema and resolvers
-const apolloServer = new ApolloServer({ typeDefs, resolvers });
 
 // Function to check website status periodically
 const checkWebsiteStatus = async () => {
@@ -149,6 +101,12 @@ const checkWebsiteStatus = async () => {
 
 // Set up cron job to run the status check every minute
 cron.schedule('* * * * *', checkWebsiteStatus);
+
+// Create an Apollo Server with GraphQL schema and resolvers
+const apolloServer = new ApolloServer({ typeDefs, resolvers });
+
+// Create an Express application
+const app = express();
 
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
