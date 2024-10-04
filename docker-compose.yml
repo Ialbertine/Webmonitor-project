@@ -29,6 +29,15 @@ services:
     networks:
       - mynetwork
 
+  frontend:
+  build:
+    context: ./Front-end  # Points to the front-end folder
+    dockerfile: Dockerfile  # Front-end Dockerfile location
+  ports:
+    - "3000:3000"  # Exposes the front-end on port 3000
+  networks:
+    - mynetwork
+
 volumes:
   pgdata:
 
