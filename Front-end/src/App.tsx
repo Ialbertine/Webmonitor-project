@@ -1,9 +1,5 @@
-
-
 const App = () => {
-  return (
-    <div className="bg-slate-500">App</div>
-  )
-}
+  return;
+};
 
-export default App
+export default App;

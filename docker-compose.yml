@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:13
     environment:
-      POSTGRES_USER: webmon
-      POSTGRES_PASSWORD: safedb12!
-      POSTGRES_DB: WebmonDB
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -16,27 +16,27 @@ services:
 
   backend:
     build:
-      context: ./backend  # Pointing to backend folder
-      dockerfile: Dockerfile  # Backend Dockerfile location
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "5000:5000"
     depends_on:
-      - db  # Ensure backend starts after db
+      - db
     environment:
-      - DB_USER=webmon
-      - DB_PASSWORD=safedb12!
-      - DB_NAME=WebmonDB
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
     networks:
       - mynetwork
 
-  frontend:
-  build:
-    context: ./Front-end  # Points to the front-end folder
-    dockerfile: Dockerfile  # Front-end Dockerfile location
-  ports:
-    - "3000:3000"  # Exposes the front-end on port 3000
-  networks:
-    - mynetwork
+  # frontend:
+  #   build:
+  #     context: ./Front-end
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - mynetwork
 
 volumes:
   pgdata:
