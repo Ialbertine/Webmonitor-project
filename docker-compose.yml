@@ -33,6 +33,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:80"
+    volumes:
+    - ./Front-end:/usr/share/nginx/html
     networks:
       - mynetwork
 

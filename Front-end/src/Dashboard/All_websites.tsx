@@ -11,7 +11,7 @@ interface Website {
   status: string;
 }
 
-const All_website: React.FC = () => {
+const All_Websites: React.FC = () => {
   const { loading, error, data } = useQuery<{ websites: Website[] }>(
     GET_ALL_WEBSITES,
     {
@@ -25,6 +25,7 @@ const All_website: React.FC = () => {
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
+    // Filter online websites
     const onlineWebsites = data.websites.filter(
       (website) => website.status.toLowerCase() === "online"
     );
@@ -134,4 +135,4 @@ const All_website: React.FC = () => {
   );
 };
 
-export default All_website;
+export default All_Websites;
