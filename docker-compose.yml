@@ -34,7 +34,7 @@ services:
       context: ./Front-end
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:80"
     networks:
       - mynetwork
 
