@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:13
@@ -29,14 +27,16 @@ services:
     networks:
       - mynetwork
 
-  # frontend:
-  #   build:
-  #     context: ./Front-end
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - mynetwork
+  frontend:
+    build:
+      context: ./Front-end
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    volumes:
+    - ./Front-end:/usr/share/nginx/html
+    networks:
+      - mynetwork
 
 volumes:
   pgdata:

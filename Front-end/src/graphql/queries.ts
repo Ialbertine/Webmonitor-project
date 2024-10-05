@@ -1,8 +1,8 @@
-import { gql } from '@apollo/client';
+import { gql } from "@apollo/client";
 
 export const GET_ALL_WEBSITES = gql`
-  query GetAllProducts {
-    products {
+  query GetAllWebsites {
+    websites {
       id
       name
       url
@@ -11,10 +11,20 @@ export const GET_ALL_WEBSITES = gql`
   }
 `;
 
-
 export const GET_WEBSITE_BY_ID = gql`
-  query GetProductById($id: ID!) {
-    product(id: $id) {
+  query GetWebsiteById($id: ID!) {
+    getWebsiteStatus(id: $id) {
+      id
+      name
+      url
+      status
+    }
+  }
+`;
+
+export const ADD_WEBSITE = gql`
+  mutation AddWebsite($name: String!, $url: String!) {
+    addWebsite(name: $name, url: $url) {
       id
       name
       url
@@ -24,10 +34,7 @@ export const GET_WEBSITE_BY_ID = gql`
 `;
 
 export const DELETE_WEBSITE = gql`
-  mutation DeleteProduct($id: ID!) {
-    deleteProduct(id: $id) {
-      id
-      name
-    }
+  mutation DeleteWebsite($id: ID!) {
+    deleteWebsite(id: $id)
   }
 `;
