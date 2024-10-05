@@ -1,3 +1,5 @@
+const dotenv = require('dotenv');
+dotenv.config();
 const express = require('express');
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
@@ -7,11 +9,11 @@ const cors = require('cors'); // Import CORS
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
-  user: 'webmon',
-  host: 'db',
-  database: 'WebmonDB',
-  password: 'safedb12!',
-  port: 5432,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
 
 // GraphQL schema definition
