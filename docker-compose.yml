@@ -29,14 +29,14 @@ services:
     networks:
       - mynetwork
 
-  # frontend:
-  #   build:
-  #     context: ./Front-end
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   networks:
-  #     - mynetwork
+  frontend:
+    build:
+      context: ./Front-end
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - mynetwork
 
 volumes:
   pgdata:
