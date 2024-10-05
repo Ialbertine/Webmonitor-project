@@ -8,14 +8,17 @@ import { GET_ALL_WEBSITES, DELETE_WEBSITE } from "../graphql/queries";
 
 interface Website {
   id: number;
-  Name: string;
-  Url: string;
-  Status: string;
+  name: string;
+  url: string;
+  status: string;
 }
 
 const Homepage: React.FC = () => {
   const { loading, error, data } = useQuery<{ websites: Website[] }>(
-    GET_ALL_WEBSITES
+    GET_ALL_WEBSITES,
+    {
+      fetchPolicy: "network-only",
+    }
   );
   const [deleteWebsite] = useMutation<
     { deleteWebsite: Website },
@@ -31,8 +34,10 @@ const Homepage: React.FC = () => {
   // Handle Delete Action
   const handleDelete = async (id: string) => {
     try {
-      await deleteWebsite({ variables: { id } });
-      // Optionally refetch or update cache here
+      await deleteWebsite({
+        variables: { id },
+        refetchQueries: [{ query: GET_ALL_WEBSITES }],
+      });
     } catch (error) {
       console.error("Error deleting website:", error);
     }
@@ -41,12 +46,16 @@ const Homepage: React.FC = () => {
   // Filter rows based on search term with error handling
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
-    return data.websites.filter((website) => {
-      if (website && website.Name) {
-        return website.Name.toLowerCase().includes(searchTerm.toLowerCase());
-      }
-      return false; // Skip websites with undefined or missing Name
-    });
+    return data.websites
+      .map((website) => ({
+        id: website.id || "N/A",
+        name: website.name || "No Name", // camelCase
+        url: website.url || "No URL", // camelCase
+        status: website.status || "No Status", // camelCase
+      }))
+      .filter((website) => {
+        return website.name.toLowerCase().includes(searchTerm.toLowerCase());
+      });
   }, [data, searchTerm]);
 
   // Column Definitions
@@ -59,21 +68,21 @@ const Homepage: React.FC = () => {
       headerAlign: "center",
     },
     {
-      field: "Name",
+      field: "name", // camelCase
       headerName: "Name",
       width: 200,
       align: "center",
       headerAlign: "center",
     },
     {
-      field: "Url",
+      field: "url", // camelCase
       headerName: "URL",
       width: 250,
       align: "center",
       headerAlign: "center",
     },
     {
-      field: "Status",
+      field: "status", // camelCase
       headerName: "Status",
       width: 150,
       align: "center",
