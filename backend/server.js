@@ -3,6 +3,7 @@ const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
 const axios = require('axios');
 const cron = require('node-cron');
+const cors = require('cors'); // Import CORS
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -107,6 +108,11 @@ const apolloServer = new ApolloServer({ typeDefs, resolvers });
 
 // Create an Express application
 const app = express();
+
+// Use CORS middleware
+app.use(cors({
+  origin: 'http://localhost:3000', // Allow requests from the front-end
+}));
 
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
