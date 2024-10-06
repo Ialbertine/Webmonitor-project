@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { IconButton, Box, Stack, TextField } from "@mui/material";
-import ViewIcon from "@mui/icons-material/Edit";
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { GET_ALL_WEBSITES, DELETE_WEBSITE } from "../graphql/queries";
@@ -43,7 +43,7 @@ const Homepage: React.FC = () => {
     }
   };
 
-  // Filter rows based on search term with error handling
+  // Filter rows based on search term and sort by id
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
     return data.websites
@@ -56,7 +56,7 @@ const Homepage: React.FC = () => {
       .filter((website) => {
         return website.name.toLowerCase().includes(searchTerm.toLowerCase());
       })
-      .sort((a, b) => a.id - b.id); // Sort by id ascending
+      .sort((a, b) => a.id - b.id); // Sort by id in ascending order
   }, [data, searchTerm]);
 
   // Column Definitions
@@ -65,6 +65,7 @@ const Homepage: React.FC = () => {
       field: "id",
       headerName: "ID",
       width: 100,
+      flex: 1, // Makes the column responsive
       align: "center",
       headerAlign: "center",
     },
@@ -72,6 +73,7 @@ const Homepage: React.FC = () => {
       field: "name",
       headerName: "Name",
       width: 200,
+      flex: 2, 
       align: "center",
       headerAlign: "center",
     },
@@ -79,6 +81,7 @@ const Homepage: React.FC = () => {
       field: "url",
       headerName: "URL",
       width: 250,
+      flex: 2, 
       align: "center",
       headerAlign: "center",
     },
@@ -86,6 +89,7 @@ const Homepage: React.FC = () => {
       field: "status",
       headerName: "Status",
       width: 150,
+      flex: 1, 
       align: "center",
       headerAlign: "center",
     },
@@ -98,10 +102,10 @@ const Homepage: React.FC = () => {
       renderCell: (params: GridRenderCellParams) => (
         <>
           <IconButton size="large">
-            <ViewIcon color="primary"/>
+            <EditIcon color="primary" />
           </IconButton>
           <IconButton onClick={() => handleDelete(params.row.id)} size="large">
-            <DeleteIcon color="error"/>
+            <DeleteIcon color="error" />
           </IconButton>
         </>
       ),
@@ -122,7 +126,7 @@ const Homepage: React.FC = () => {
       padding={4}
     >
       <div className="text-center">
-        <p className="text-lg mb-8">All Websites</p>
+        <p className="text-3xl mb-7 text-[#1077ec] font-semibold">All Websites</p>
       </div>
       <Stack spacing={3} alignItems="center" width="100%" maxWidth="1200px">
         <Stack

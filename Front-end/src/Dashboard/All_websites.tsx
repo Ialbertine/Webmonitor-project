@@ -21,7 +21,7 @@ const All_Websites: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Filter 
+  // Filter
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
@@ -47,6 +47,7 @@ const All_Websites: React.FC = () => {
       width: 100,
       align: "center",
       headerAlign: "center",
+      flex: 1, // Adjust width on smaller screens
     },
     {
       field: "name",
@@ -54,6 +55,7 @@ const All_Websites: React.FC = () => {
       width: 200,
       align: "center",
       headerAlign: "center",
+      flex: 2,
     },
     {
       field: "url",
@@ -61,6 +63,7 @@ const All_Websites: React.FC = () => {
       width: 250,
       align: "center",
       headerAlign: "center",
+      flex: 3,
     },
     {
       field: "status",
@@ -68,11 +71,20 @@ const All_Websites: React.FC = () => {
       width: 150,
       align: "center",
       headerAlign: "center",
+      flex: 1,
     },
   ];
 
-  if (loading) return <p className="text-center p-4 text-2xl text-[green]">Loading...</p>;
-  if (error) return <p className="text-center p-4 text-2xl text-[red]">Error: {error.message}</p>;
+  if (loading)
+    return (
+      <p className="text-center p-4 text-2xl text-[green]">Loading...</p>
+    );
+  if (error)
+    return (
+      <p className="text-center p-4 text-2xl text-[red]">
+        Error: {error.message}
+      </p>
+    );
 
   return (
     <Box
@@ -82,26 +94,57 @@ const All_Websites: React.FC = () => {
       alignItems="center"
       minHeight="100vh"
       padding={4}
+      sx={{
+        width: "100%",
+        maxWidth: "1200px",
+        "@media (max-width: 600px)": {
+          padding: 2,
+        },
+      }}
     >
       <div className="text-center">
-        <p className="text-lg mb-8">Active Websites</p>
+        <p className="text-3xl mb-7 text-[#1077ec] font-semibold">
+          Active Websites
+        </p>
       </div>
-      <Stack spacing={3} alignItems="center" width="100%" maxWidth="1200px">
+      <Stack spacing={3} alignItems="center" width="100%">
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="center"
           width="100%"
+          sx={{
+            "@media (max-width: 600px)": {
+              flexDirection: "column",
+              alignItems: "stretch",
+            },
+          }}
         >
           <TextField
             label="Search"
             variant="outlined"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            sx={{ width: "300px" }}
+            sx={{
+              width: "300px",
+              "@media (max-width: 600px)": {
+                width: "100%",
+                marginBottom: "16px",
+              },
+            }}
           />
         </Stack>
-        <Box sx={{ width: "100%", backgroundColor: "#fff" }}>
+        <Box
+          sx={{
+            width: "100%",
+            backgroundColor: "#fff",
+            "@media (max-width: 600px)": {
+              "& .MuiDataGrid-root": {
+                fontSize: "12px", 
+              },
+            },
+          }}
+        >
           <DataGrid
             rows={filteredRows}
             columns={columns}
