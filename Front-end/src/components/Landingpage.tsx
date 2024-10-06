@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Typography, Container, Box } from '@mui/material';
+import { Button, Container, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 const Landingpage: React.FC = () => {
