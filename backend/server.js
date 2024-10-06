@@ -1,11 +1,12 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
+const path = require('path'); 
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
 const axios = require('axios');
 const cron = require('node-cron');
-const cors = require('cors'); // Import CORS
+const cors = require('cors'); 
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -15,7 +16,7 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
   ssl: {
-    rejectUnauthorized: false, // Render requires this to be set for SSL
+    rejectUnauthorized: false, // Added this to include render's SSL
   },
 });
 
@@ -48,7 +49,7 @@ const resolvers = {
         return res.rows;
       } catch (err) {
         console.error('Error fetching websites:', err);
-        throw new Error(`Error fetching websites: ${err.message}`); // Provide detailed error
+        throw new Error(`Error fetching websites: ${err.message}`);
       }
     },
     getWebsiteStatus: async (_, { id }) => {
@@ -58,7 +59,7 @@ const resolvers = {
         return res.rows[0];
       } catch (err) {
         console.error(`Error fetching website status for ID ${id}:`, err);
-        throw new Error(`Error fetching website status: ${err.message}`); // Provide detailed error
+        throw new Error(`Error fetching website status: ${err.message}`);
       }
     }
   },
@@ -72,7 +73,7 @@ const resolvers = {
         return res.rows[0];
       } catch (err) {
         console.error('Error adding website:', err);
-        throw new Error(`Error adding website: ${err.message}`); // Provide detailed error
+        throw new Error(`Error adding website: ${err.message}`);
       }
     },
     deleteWebsite: async (_, { id }) => {
@@ -81,13 +82,13 @@ const resolvers = {
         return res.rowCount > 0;
       } catch (err) {
         console.error(`Error deleting website with ID ${id}:`, err);
-        throw new Error(`Error deleting website: ${err.message}`); // Provide detailed error
+        throw new Error(`Error deleting website: ${err.message}`);
       }
     }
   }
 };
 
-// Function to check website status periodically
+// Check website status periodically
 const checkWebsiteStatus = async () => {
   try {
     const websites = await pool.query('SELECT * FROM websites');
@@ -105,7 +106,7 @@ const checkWebsiteStatus = async () => {
   }
 };
 
-// Set up cron job to run the status check every minute
+// cron job to run the status check every minute
 cron.schedule('* * * * *', checkWebsiteStatus);
 
 // Create an Apollo Server with GraphQL schema and resolvers
@@ -118,8 +119,11 @@ const apolloServer = new ApolloServer({
 // Create an Express application
 const app = express();
 
-// Use CORS middleware
+// Using CORS
 app.use(cors({}));
+
+// Serve static files from the React app (make sure to build your React app)
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Root route for the server
 app.get('/', (req, res) => {
@@ -136,6 +140,11 @@ async function startServer() {
     console.log(`🚀 Server ready at http://localhost:5000${apolloServer.graphqlPath}`)
   );
 }
+
+//  Allowing server to detect all routes from React Router
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build/index.html'));
+});
 
 // Initialize the server
 startServer().catch((err) => {
