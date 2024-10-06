@@ -14,6 +14,9 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false, // Render requires this to be set for SSL
+  },
 });
 
 // GraphQL schema definition
@@ -113,8 +116,13 @@ const app = express();
 
 // Use CORS middleware
 app.use(cors({
-  origin: 'http://localhost:3000', // Allow requests from the front-end
+  origin: 'https://front-ja8rq2fhk-albertine-ingabires-projects.vercel.app/', // Allow requests from the front-end
 }));
+
+// Root route for the server
+app.get('/', (req, res) => {
+  res.send('Welcome to the Web Monitor API. Visit /graphql for the GraphQL interface.');
+});
 
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
