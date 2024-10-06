@@ -5,7 +5,6 @@ This is a Full-stack web application that allows users to add websites to monito
 ## Features
 
 - Homepage: Display a list of monitored websites with their current status (online/offline).
-
 - Add Website: A form that allows users to add new websites to the monitoring list by providing the website name and URL.
 - Monitored Websites: Each website shows its name, URL, and current status which is online only.
 - Delete Website: Users can remove websites from the monitoring list.
@@ -33,7 +32,7 @@ This is a Full-stack web application that allows users to add websites to monito
 
 - Backend: Node js with apollo server handles the GraphQL Apis for adding, removing, retrieving and checking website status and also the backend communicates with the PostgreeSQL Database to store website data and a cron job for checking the status of each website and update the database.
 
-## How to Access The App
+## How to Access TheWeb Monitor
 
 ### Here is the Link to the deployed version:
 
