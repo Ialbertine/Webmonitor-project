@@ -1,12 +1,12 @@
 const dotenv = require('dotenv');
 dotenv.config();
 const express = require('express');
-const path = require('path'); 
 const { ApolloServer, gql } = require('apollo-server-express');
 const { Pool } = require('pg');
 const axios = require('axios');
 const cron = require('node-cron');
-const cors = require('cors'); 
+const cors = require('cors'); // Import CORS
+
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -16,9 +16,10 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
   ssl: {
-    rejectUnauthorized: false, // Added this to include render's SSL
+    rejectUnauthorized: false, // Render requires this to be set for SSL
   },
 });
+
 
 // GraphQL schema definition
 const typeDefs = gql`
@@ -29,16 +30,19 @@ const typeDefs = gql`
     status: String!
   }
 
+
   type Query {
     websites: [Website]
     getWebsiteStatus(id: ID!): Website
   }
+
 
   type Mutation {
     addWebsite(name: String!, url: String!): Website
     deleteWebsite(id: ID!): Boolean
   }
 `;
+
 
 // GraphQL resolvers
 const resolvers = {
@@ -49,7 +53,7 @@ const resolvers = {
         return res.rows;
       } catch (err) {
         console.error('Error fetching websites:', err);
-        throw new Error(`Error fetching websites: ${err.message}`);
+        throw new Error(`Error fetching websites: ${err.message}`); // Provide detailed error
       }
     },
     getWebsiteStatus: async (_, { id }) => {
@@ -59,7 +63,7 @@ const resolvers = {
         return res.rows[0];
       } catch (err) {
         console.error(`Error fetching website status for ID ${id}:`, err);
-        throw new Error(`Error fetching website status: ${err.message}`);
+        throw new Error(`Error fetching website status: ${err.message}`); // Provide detailed error
       }
     }
   },
@@ -73,7 +77,7 @@ const resolvers = {
         return res.rows[0];
       } catch (err) {
         console.error('Error adding website:', err);
-        throw new Error(`Error adding website: ${err.message}`);
+        throw new Error(`Error adding website: ${err.message}`); // Provide detailed error
       }
     },
     deleteWebsite: async (_, { id }) => {
@@ -82,13 +86,14 @@ const resolvers = {
         return res.rowCount > 0;
       } catch (err) {
         console.error(`Error deleting website with ID ${id}:`, err);
-        throw new Error(`Error deleting website: ${err.message}`);
+        throw new Error(`Error deleting website: ${err.message}`); // Provide detailed error
       }
     }
   }
 };
 
-// Check website status periodically
+
+// Function to check website status periodically
 const checkWebsiteStatus = async () => {
   try {
     const websites = await pool.query('SELECT * FROM websites');
@@ -106,34 +111,38 @@ const checkWebsiteStatus = async () => {
   }
 };
 
-// cron job to run the status check every minute
+
+// Set up cron job to run the status check every minute
 cron.schedule('* * * * *', checkWebsiteStatus);
 
+
 // Create an Apollo Server with GraphQL schema and resolvers
-const apolloServer = new ApolloServer({ 
-  typeDefs, 
+const apolloServer = new ApolloServer({
+  typeDefs,
   resolvers,
   playground: true, // Enable GraphQL Playground
 });
 
+
 // Create an Express application
 const app = express();
 
-// Using CORS
+
+// Use CORS middleware
 app.use(cors({}));
 
-// Serve static files from the React app (make sure to build your React app)
-app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Root route for the server
 app.get('/', (req, res) => {
   res.send('Welcome to the Web Monitor API. Visit /graphql for the GraphQL interface.');
 });
 
+
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
   await apolloServer.start();
   apolloServer.applyMiddleware({ app });
+
 
   // Start the Express server
   app.listen({ port: 5000 }, () =>
@@ -141,10 +150,6 @@ async function startServer() {
   );
 }
 
-//  Allowing server to detect all routes from React Router
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build/index.html'));
-});
 
 // Initialize the server
 startServer().catch((err) => {
