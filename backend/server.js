@@ -47,8 +47,8 @@ const resolvers = {
         const res = await pool.query('SELECT * FROM websites');
         return res.rows;
       } catch (err) {
-        console.error(err);
-        throw new Error('Error fetching websites');
+        console.error('Error fetching websites:', err);
+        throw new Error(`Error fetching websites: ${err.message}`); // Provide detailed error
       }
     },
     getWebsiteStatus: async (_, { id }) => {
@@ -57,8 +57,8 @@ const resolvers = {
         if (res.rows.length === 0) throw new Error('Website not found');
         return res.rows[0];
       } catch (err) {
-        console.error(err);
-        throw new Error('Error fetching website status');
+        console.error(`Error fetching website status for ID ${id}:`, err);
+        throw new Error(`Error fetching website status: ${err.message}`); // Provide detailed error
       }
     }
   },
@@ -71,8 +71,8 @@ const resolvers = {
         );
         return res.rows[0];
       } catch (err) {
-        console.error(err);
-        throw new Error('Error adding website');
+        console.error('Error adding website:', err);
+        throw new Error(`Error adding website: ${err.message}`); // Provide detailed error
       }
     },
     deleteWebsite: async (_, { id }) => {
@@ -80,8 +80,8 @@ const resolvers = {
         const res = await pool.query('DELETE FROM websites WHERE id = $1 RETURNING *', [id]);
         return res.rowCount > 0;
       } catch (err) {
-        console.error(err);
-        throw new Error('Error deleting website');
+        console.error(`Error deleting website with ID ${id}:`, err);
+        throw new Error(`Error deleting website: ${err.message}`); // Provide detailed error
       }
     }
   }
