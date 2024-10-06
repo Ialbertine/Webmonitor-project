@@ -1,12 +1,12 @@
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 dotenv.config();
-const express = require('express');
-const { ApolloServer, gql } = require('apollo-server-express');
-const { Pool } = require('pg');
-const axios = require('axios');
-const cron = require('node-cron');
-const cors = require('cors'); // Import CORS
-
+import express, { Request, Response } from 'express';
+import path from 'path';
+import { ApolloServer, gql } from 'apollo-server-express';
+import { Pool } from 'pg';
+import axios from 'axios';
+import cron from 'node-cron';
+import cors from 'cors';
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -14,12 +14,11 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT),
   ssl: {
-    rejectUnauthorized: false, // Render requires this to be set for SSL
+    rejectUnauthorized: false, // Added this to include Render's SSL
   },
 });
-
 
 // GraphQL schema definition
 const typeDefs = gql`
@@ -30,19 +29,16 @@ const typeDefs = gql`
     status: String!
   }
 
-
   type Query {
     websites: [Website]
     getWebsiteStatus(id: ID!): Website
   }
-
 
   type Mutation {
     addWebsite(name: String!, url: String!): Website
     deleteWebsite(id: ID!): Boolean
   }
 `;
-
 
 // GraphQL resolvers
 const resolvers = {
@@ -53,22 +49,22 @@ const resolvers = {
         return res.rows;
       } catch (err) {
         console.error('Error fetching websites:', err);
-        throw new Error(`Error fetching websites: ${err.message}`); // Provide detailed error
+        throw new Error(`Error fetching websites: ${err.message}`);
       }
     },
-    getWebsiteStatus: async (_, { id }) => {
+    getWebsiteStatus: async (_: unknown, { id }: { id: string }) => {
       try {
         const res = await pool.query('SELECT * FROM websites WHERE id = $1', [id]);
         if (res.rows.length === 0) throw new Error('Website not found');
         return res.rows[0];
       } catch (err) {
         console.error(`Error fetching website status for ID ${id}:`, err);
-        throw new Error(`Error fetching website status: ${err.message}`); // Provide detailed error
+        throw new Error(`Error fetching website status: ${err.message}`);
       }
     }
   },
   Mutation: {
-    addWebsite: async (_, { name, url }) => {
+    addWebsite: async (_: unknown, { name, url }: { name: string; url: string }) => {
       try {
         const res = await pool.query(
           'INSERT INTO websites (name, url, status) VALUES ($1, $2, $3) RETURNING *',
@@ -77,23 +73,22 @@ const resolvers = {
         return res.rows[0];
       } catch (err) {
         console.error('Error adding website:', err);
-        throw new Error(`Error adding website: ${err.message}`); // Provide detailed error
+        throw new Error(`Error adding website: ${err.message}`);
       }
     },
-    deleteWebsite: async (_, { id }) => {
+    deleteWebsite: async (_: unknown, { id }: { id: string }) => {
       try {
         const res = await pool.query('DELETE FROM websites WHERE id = $1 RETURNING *', [id]);
         return res.rowCount > 0;
       } catch (err) {
         console.error(`Error deleting website with ID ${id}:`, err);
-        throw new Error(`Error deleting website: ${err.message}`); // Provide detailed error
+        throw new Error(`Error deleting website: ${err.message}`);
       }
     }
   }
 };
 
-
-// Function to check website status periodically
+// Check website status periodically
 const checkWebsiteStatus = async () => {
   try {
     const websites = await pool.query('SELECT * FROM websites');
@@ -111,10 +106,8 @@ const checkWebsiteStatus = async () => {
   }
 };
 
-
-// Set up cron job to run the status check every minute
+// cron job to run the status check every minute
 cron.schedule('* * * * *', checkWebsiteStatus);
-
 
 // Create an Apollo Server with GraphQL schema and resolvers
 const apolloServer = new ApolloServer({
@@ -123,26 +116,24 @@ const apolloServer = new ApolloServer({
   playground: true, // Enable GraphQL Playground
 });
 
-
 // Create an Express application
 const app = express();
 
-
-// Use CORS middleware
+// Using CORS
 app.use(cors({}));
 
+// Serve static files from the React app (make sure to build your React app)
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Root route for the server
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to the Web Monitor API. Visit /graphql for the GraphQL interface.');
 });
-
 
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
   await apolloServer.start();
   apolloServer.applyMiddleware({ app });
-
 
   // Start the Express server
   app.listen({ port: 5000 }, () =>
@@ -150,6 +141,10 @@ async function startServer() {
   );
 }
 
+//  Allowing server to detect all routes from React Router
+app.get('*', (req: Request, res: Response) => {
+  res.sendFile(path.join(__dirname, 'client/build/index.html'));
+});
 
 // Initialize the server
 startServer().catch((err) => {
