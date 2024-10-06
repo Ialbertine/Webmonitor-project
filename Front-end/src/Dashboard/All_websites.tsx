@@ -21,7 +21,7 @@ const All_Websites: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Filter and sort online websites
+  // Filter 
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
@@ -71,8 +71,8 @@ const All_Websites: React.FC = () => {
     },
   ];
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p className="text-center p-4 text-2xl text-[green]">Loading...</p>;
+  if (error) return <p className="text-center p-4 text-2xl text-[red]">Error: {error.message}</p>;
 
   return (
     <Box
