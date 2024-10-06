@@ -27,12 +27,13 @@ const Landingpage: React.FC = () => {
         justifyContent: 'center',
       }}
     >
-      <Typography variant="h3" gutterBottom>
-        Welcome to Website Monitoring Dashboard
-      </Typography>
-      <Typography variant="body1" gutterBottom>
-        You can easily create and monitor websites whether they are offline or online with our dashboard. Just click on the button below to get started.
-      </Typography>
+      <div className='flex flex-col items-center justify-center gap-4 '>
+       <h2 className='text-4xl font-bold'>Welcome to Website Monitoring Dashboard</h2>
+        <p className='text-lg'>
+        You can easily create and monitor websites whether they are offline or online with our dashboard<br/> Just click on the button below to get started.
+        </p>
+      </div>
+      
       <Box mt={4}>
         <Button 
           variant="contained" 
