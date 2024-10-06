@@ -9,23 +9,23 @@ interface CreateProps {
 }
 
 const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
+  const [name, setName] = useState<string>("");
+  const [url, setUrl] = useState<string>("");
 
-  // Apollo useMutation hook
+  // Apollo useMutation hook to create a new website
   const [addWebsite, { loading, error }] = useMutation(ADD_WEBSITE, {
-    refetchQueries: [{ query: GET_ALL_WEBSITES }], // Refetch website list after adding a new one
+    refetchQueries: [{ query: GET_ALL_WEBSITES }], // this line will refetch and retrive all websites
   });
 
   const handleSubmit = async () => {
     if (name && url) {
       try {
-        // Trigger the mutation to add the website
         const result = await addWebsite({ variables: { name, url } });
 
         if (result.data) {
-          // Notify the parent component after successful submission
+          console.log("Website added successfully");
           onSubmit(result.data.addWebsite);
+          
         }
         // Reset the form fields after submission
         setName("");
