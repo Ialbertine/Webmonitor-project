@@ -1,12 +1,12 @@
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 dotenv.config();
-const express = require('express');
-const path = require('path'); 
-const { ApolloServer, gql } = require('apollo-server-express');
-const { Pool } = require('pg');
-const axios = require('axios');
-const cron = require('node-cron');
-const cors = require('cors'); 
+import express, { Request, Response } from 'express';
+import path from 'path';
+import { ApolloServer, gql } from 'apollo-server-express';
+import { Pool } from 'pg';
+import axios from 'axios';
+import cron from 'node-cron';
+import cors from 'cors';
 
 // PostgreSQL connection pool setup
 const pool = new Pool({
@@ -14,9 +14,9 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT),
   ssl: {
-    rejectUnauthorized: false, // Added this to include render's SSL
+    rejectUnauthorized: false, // Added this to include Render's SSL
   },
 });
 
@@ -52,7 +52,7 @@ const resolvers = {
         throw new Error(`Error fetching websites: ${err.message}`);
       }
     },
-    getWebsiteStatus: async (_, { id }) => {
+    getWebsiteStatus: async (_: unknown, { id }: { id: string }) => {
       try {
         const res = await pool.query('SELECT * FROM websites WHERE id = $1', [id]);
         if (res.rows.length === 0) throw new Error('Website not found');
@@ -64,7 +64,7 @@ const resolvers = {
     }
   },
   Mutation: {
-    addWebsite: async (_, { name, url }) => {
+    addWebsite: async (_: unknown, { name, url }: { name: string; url: string }) => {
       try {
         const res = await pool.query(
           'INSERT INTO websites (name, url, status) VALUES ($1, $2, $3) RETURNING *',
@@ -76,7 +76,7 @@ const resolvers = {
         throw new Error(`Error adding website: ${err.message}`);
       }
     },
-    deleteWebsite: async (_, { id }) => {
+    deleteWebsite: async (_: unknown, { id }: { id: string }) => {
       try {
         const res = await pool.query('DELETE FROM websites WHERE id = $1 RETURNING *', [id]);
         return res.rowCount > 0;
@@ -110,8 +110,8 @@ const checkWebsiteStatus = async () => {
 cron.schedule('* * * * *', checkWebsiteStatus);
 
 // Create an Apollo Server with GraphQL schema and resolvers
-const apolloServer = new ApolloServer({ 
-  typeDefs, 
+const apolloServer = new ApolloServer({
+  typeDefs,
   resolvers,
   playground: true, // Enable GraphQL Playground
 });
@@ -126,7 +126,7 @@ app.use(cors({}));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 // Root route for the server
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to the Web Monitor API. Visit /graphql for the GraphQL interface.');
 });
 
@@ -142,7 +142,7 @@ async function startServer() {
 }
 
 //  Allowing server to detect all routes from React Router
-app.get('*', (req, res) => {
+app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, 'client/build/index.html'));
 });
 
