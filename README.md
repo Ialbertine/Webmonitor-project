@@ -36,7 +36,7 @@ This is a Full-stack web application that allows users to add websites to monito
 - Backend: Node js with apollo server handles the GraphQL Apis for adding, removing, retrieving and checking website status and also the backend communicates with the PostgreeSQL Database to store website data and a cron job for checking the status of each website and update the database.
 
 ## Here is the Link to the deployed version:
-https://frontendwebmonitor.vercel.app/  
+https://fullstackwebmoniter.vercel.app/   
 
 
 
