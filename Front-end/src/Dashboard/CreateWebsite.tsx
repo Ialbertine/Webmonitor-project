@@ -11,10 +11,11 @@ interface CreateProps {
 const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
   const [name, setName] = useState<string>("");
   const [url, setUrl] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Apollo useMutation hook to create a new website
   const [addWebsite, { loading, error }] = useMutation(ADD_WEBSITE, {
-    refetchQueries: [{ query: GET_ALL_WEBSITES }], // this line will refetch and retrive all websites
+    refetchQueries: [{ query: GET_ALL_WEBSITES }], // this line will refetch and retrieve all websites
   });
 
   const handleSubmit = async () => {
@@ -25,8 +26,11 @@ const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
         if (result.data) {
           console.log("Website added successfully");
           onSubmit(result.data.addWebsite);
-          
         }
+
+        setSuccessMessage("Website added successfully");
+        setTimeout(() => setSuccessMessage(null), 5000);
+
         // Reset the form fields after submission
         setName("");
         setUrl("");
@@ -43,15 +47,16 @@ const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
       justifyContent="center"
       alignItems="center"
       sx={{
-        padding: 4,
+        padding: { xs: 2, sm: 4 }, // Responsive padding
         width: "100%",
-        maxWidth: "600px",
-        margin: "20px auto",
+        maxWidth: { xs: "90%", sm: "600px" }, 
+        margin: "5rem auto",
         backgroundColor: "#f9f9f9",
         borderRadius: "8px",
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
+      {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
       <h2 className="text-center text-2xl text-[#2d7bc9] font-semibold">
         Add New Website
       </h2>

@@ -1,7 +1,7 @@
 import { ApolloClient, InMemoryCache } from '@apollo/client';
 
 const client = new ApolloClient({
-  uri: 'https://webmon-backend.onrender.com',
+  uri: 'https://webmon-backend.onrender.com/graphql',
   cache: new InMemoryCache(),
 });
 
