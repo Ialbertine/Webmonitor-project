@@ -119,9 +119,7 @@ const apolloServer = new ApolloServer({
 const app = express();
 
 // Use CORS middleware
-app.use(cors({
-  origin: 'https://front-ja8rq2fhk-albertine-ingabires-projects.vercel.app/', // Allow requests from the front-end
-}));
+app.use(cors({}));
 
 // Root route for the server
 app.get('/', (req, res) => {
