@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { IconButton, Box, Stack, TextField } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
+import ViewIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { GET_ALL_WEBSITES, DELETE_WEBSITE } from "../graphql/queries";
@@ -98,10 +98,10 @@ const Homepage: React.FC = () => {
       renderCell: (params: GridRenderCellParams) => (
         <>
           <IconButton size="large">
-            <EditIcon />
+            <ViewIcon color="primary"/>
           </IconButton>
           <IconButton onClick={() => handleDelete(params.row.id)} size="large">
-            <DeleteIcon />
+            <DeleteIcon color="error"/>
           </IconButton>
         </>
       ),
@@ -109,8 +109,8 @@ const Homepage: React.FC = () => {
     },
   ];
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (loading) return <p className="text-center p-4 text-2xl text-[green]">Loading...</p>;
+  if (error) return <p className="text-center p-4 text-2xl text-[red]">Error: {error.message}</p>;
 
   return (
     <Box
