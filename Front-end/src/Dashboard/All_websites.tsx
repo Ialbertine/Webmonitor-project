@@ -21,7 +21,7 @@ const All_Websites: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // Filter and sort online websites
+  // Filter 
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
