@@ -109,7 +109,11 @@ const checkWebsiteStatus = async () => {
 cron.schedule('* * * * *', checkWebsiteStatus);
 
 // Create an Apollo Server with GraphQL schema and resolvers
-const apolloServer = new ApolloServer({ typeDefs, resolvers });
+const apolloServer = new ApolloServer({ 
+  typeDefs, 
+  resolvers,
+  playground: true, // Enable GraphQL Playground
+});
 
 // Create an Express application
 const app = express();
