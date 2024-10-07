@@ -108,10 +108,12 @@ const checkWebsiteStatusForOne = async (website: Website) => {
     website.status = status;
     await websiteRepo.save(website);
   } catch (err) {
+    console.error(`Error checking status for ${website.url}:`, err.message);
     website.status = 'offline';
     await websiteRepo.save(website);
   }
 };
+
 
 const checkWebsiteStatus = async () => {
   try {
@@ -125,14 +127,12 @@ const checkWebsiteStatus = async () => {
   }
 };
 
-// Cron job to run the status check every minute
 cron.schedule('* * * * *', checkWebsiteStatus);
 
-// Create an Apollo Server with GraphQL schema and resolvers
+// Create an Apollo Server with schema and resolvers
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
-  playground: true, 
 });
 
 const app = express();
@@ -160,11 +160,6 @@ async function startServer() {
     console.error('Failed to start the server:', err);
   }
 }
-
-// // Allowing server to detect all routes from React Router
-// app.get('*', (req: Request, res: Response) => {
-//   res.sendFile(path.join(__dirname, 'client/build/index.html'));
-// });
 
 // Initialize the server
 startServer();
