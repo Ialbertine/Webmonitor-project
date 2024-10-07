@@ -15,8 +15,11 @@ RUN npm install --legacy-peer-deps
 # Copy the current directory contents to the container at /app
 COPY . .
 
+# Build the TypeScript code
+RUN npm run build
+
 # Expose the backend's port (5000 in this case)
 EXPOSE 5000
 
-# Command to run the Node.js server
-CMD ["npm", "start"]
+# Command to run the Node.js server from the built files
+CMD ["node", "build/index.js"]

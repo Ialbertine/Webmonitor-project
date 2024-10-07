@@ -1,5 +1,7 @@
 import { DataSource } from "typeorm";
-import "dotenv/config";
+import { Website } from "./entity/Website";
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -10,6 +12,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-  entities: [__dirname + "/entity/*.{js,ts}"], 
+  entities: [Website],
   logging: process.env.NODE_ENV !== 'production',
 });
