@@ -5,6 +5,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+      
     ports:
       - "5432:5432"
     volumes:
@@ -24,6 +25,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
+      - DB_HOST=${DB_HOST}
     env_file:
     - .env 
     networks:

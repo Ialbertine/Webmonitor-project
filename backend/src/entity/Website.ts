@@ -11,6 +11,6 @@ export class Website {
   @Column()
   url: string;
 
-  @Column({ default: 'unknown' })
+  @Column({ default: 'Loading...' })
   status: string;
 }
