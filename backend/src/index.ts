@@ -61,7 +61,7 @@ const resolvers = {
         throw new ApolloError(`Error fetching websites: ${err.message}`);
       }
     },
-    getWebsiteStatus: async (_: unknown, { id }: { id: string }) => {
+    getWebsiteStatus: async (_: unknown, { id }: { id: number }) => {
       try {
         const websiteRepo = AppDataSource.getRepository(Website);
         const website = await websiteRepo.findOneBy({ id });
@@ -88,7 +88,7 @@ const resolvers = {
         throw new ApolloError(`Error adding website: ${err.message}`);
       }
     },
-    deleteWebsite: async (_: unknown, { id }: { id: string }) => {
+    deleteWebsite: async (_: unknown, { id }: { id: number }) => {
       try {
         const websiteRepo = AppDataSource.getRepository(Website);
         const result = await websiteRepo.delete(id);
