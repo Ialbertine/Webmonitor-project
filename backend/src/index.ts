@@ -18,9 +18,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: {
-    rejectUnauthorized: false, // For Render's SSL
-  },
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
   entities: [Website],
   synchronize: true, 
 });
@@ -163,10 +161,10 @@ async function startServer() {
   }
 }
 
-// Allowing server to detect all routes from React Router
-app.get('*', (req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, 'client/build/index.html'));
-});
+// // Allowing server to detect all routes from React Router
+// app.get('*', (req: Request, res: Response) => {
+//   res.sendFile(path.join(__dirname, 'client/build/index.html'));
+// });
 
 // Initialize the server
 startServer();

@@ -1,8 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
 @Entity()
 export class Website {
-  @PrimaryGeneratedColumn('uuid')  // Automatically generates UUIDs for IDs
+  @PrimaryGeneratedColumn()
   id: string;
 
   @Column()
@@ -11,6 +11,6 @@ export class Website {
   @Column()
   url: string;
 
-  @Column({ default: 'Loading...' })
+  @Column()
   status: string;
 }

@@ -9,9 +9,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   synchronize: true,
-  ssl: {
-    rejectUnauthorized: false, // Required for Render's SSL
-  },
-  entities: [__dirname + "/entities/*.ts"],
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  entities: [__dirname + "/entity/*.ts"], 
   logging: true,
 });
