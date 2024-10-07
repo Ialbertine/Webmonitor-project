@@ -30,6 +30,6 @@
       "typescript": "4.5.2"
    },
    "devDependencies": {
-      "@types/node": "^16.18.112",
+      "@types/node": "^16.18.112"
    }
 }
