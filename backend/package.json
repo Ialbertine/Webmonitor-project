@@ -5,8 +5,8 @@
    "main": "index.js",
    "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
-      "start": "ts-node src/index.ts", // This runs your server
-      "build": "tsc",                   // This compiles TypeScript files
+      "start": "ts-node src/index.ts",
+      "build": "tsc",
       "typeorm": "typeorm-ts-node-commonjs"
    },
    "keywords": [],
