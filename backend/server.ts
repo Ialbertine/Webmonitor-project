@@ -3,7 +3,7 @@ dotenv.config();
 import "reflect-metadata"; // TypeORM metadata reflection
 import express, { Request, Response } from 'express';
 import path from 'path';
-import { ApolloServer, gql } from 'apollo-server-express';
+import { ApolloServer, gql, ApolloError } from 'apollo-server-express';
 import axios from 'axios';
 import cron from 'node-cron';
 import cors from 'cors';
@@ -24,6 +24,14 @@ const AppDataSource = new DataSource({
   entities: [Website],
   synchronize: true, // Auto sync entities to DB (disable in production)
 });
+
+// Function to normalize URLs (add http/https if missing)
+const normalizeUrl = (url: string): string => {
+  if (!/^https?:\/\//i.test(url)) {
+    return 'http://' + url; // Default to http if protocol is not provided
+  }
+  return url;
+};
 
 // GraphQL schema definition
 const typeDefs = gql`
@@ -53,31 +61,34 @@ const resolvers = {
         const websiteRepo = AppDataSource.getRepository(Website);
         return await websiteRepo.find();
       } catch (err) {
-        console.error('Error fetching websites:', err);
-        throw new Error(`Error fetching websites: ${err.message}`);
+        throw new ApolloError(`Error fetching websites: ${err.message}`);
       }
     },
     getWebsiteStatus: async (_: unknown, { id }: { id: string }) => {
       try {
         const websiteRepo = AppDataSource.getRepository(Website);
         const website = await websiteRepo.findOneBy({ id });
-        if (!website) throw new Error('Website not found');
+        if (!website) throw new ApolloError('Website not found');
         return website;
       } catch (err) {
-        console.error(`Error fetching website status for ID ${id}:`, err);
-        throw new Error(`Error fetching website status: ${err.message}`);
+        throw new ApolloError(`Error fetching website status: ${err.message}`);
       }
     }
   },
   Mutation: {
     addWebsite: async (_: unknown, { name, url }: { name: string; url: string }) => {
+      const normalizedUrl = normalizeUrl(url);
       try {
         const websiteRepo = AppDataSource.getRepository(Website);
-        const newWebsite = websiteRepo.create({ name, url, status: 'unknown' });
-        return await websiteRepo.save(newWebsite);
+        const newWebsite = websiteRepo.create({ name, url: normalizedUrl, status: 'Loading...' });
+        const savedWebsite = await websiteRepo.save(newWebsite);
+
+        // Trigger status check immediately after website is added
+        await checkWebsiteStatusForOne(savedWebsite);
+
+        return savedWebsite;
       } catch (err) {
-        console.error('Error adding website:', err);
-        throw new Error(`Error adding website: ${err.message}`);
+        throw new ApolloError(`Error adding website: ${err.message}`);
       }
     },
     deleteWebsite: async (_: unknown, { id }: { id: string }) => {
@@ -86,10 +97,23 @@ const resolvers = {
         const result = await websiteRepo.delete(id);
         return result.affected! > 0;
       } catch (err) {
-        console.error(`Error deleting website with ID ${id}:`, err);
-        throw new Error(`Error deleting website: ${err.message}`);
+        throw new ApolloError(`Error deleting website: ${err.message}`);
       }
     }
+  }
+};
+
+// Function to check status for a single website
+const checkWebsiteStatusForOne = async (website: Website) => {
+  const websiteRepo = AppDataSource.getRepository(Website);
+  try {
+    const response = await axios.get(website.url);
+    const status = response.status === 200 ? 'online' : 'offline';
+    website.status = status;
+    await websiteRepo.save(website);
+  } catch (err) {
+    website.status = 'offline';
+    await websiteRepo.save(website);
   }
 };
 
@@ -99,15 +123,7 @@ const checkWebsiteStatus = async () => {
     const websiteRepo = AppDataSource.getRepository(Website);
     const websites = await websiteRepo.find();
     for (const website of websites) {
-      try {
-        const response = await axios.get(website.url);
-        const status = response.status === 200 ? 'online' : 'offline';
-        website.status = status;
-        await websiteRepo.save(website);
-      } catch (err) {
-        website.status = 'offline';
-        await websiteRepo.save(website);
-      }
+      await checkWebsiteStatusForOne(website);
     }
   } catch (err) {
     console.error('Error checking website status:', err);
