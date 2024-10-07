@@ -1,23 +1,28 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import "reflect-metadata"; // TypeORM metadata reflection
 import express, { Request, Response } from 'express';
 import path from 'path';
 import { ApolloServer, gql } from 'apollo-server-express';
-import { Pool } from 'pg';
 import axios from 'axios';
 import cron from 'node-cron';
 import cors from 'cors';
+import { DataSource } from 'typeorm';
+import { Website } from './entities/Website'; // Assuming your Website entity is here
 
-// PostgreSQL connection pool setup
-const pool = new Pool({
-  user: process.env.DB_USER,
+// Set up TypeORM DataSource
+const AppDataSource = new DataSource({
+  type: 'postgres',
   host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
   port: Number(process.env.DB_PORT),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   ssl: {
-    rejectUnauthorized: false, // Added this to include Render's SSL
+    rejectUnauthorized: false, // For Render's SSL
   },
+  entities: [Website],
+  synchronize: true, // Auto sync entities to DB (disable in production)
 });
 
 // GraphQL schema definition
@@ -40,13 +45,13 @@ const typeDefs = gql`
   }
 `;
 
-// GraphQL resolvers
+// GraphQL resolvers using TypeORM
 const resolvers = {
   Query: {
     websites: async () => {
       try {
-        const res = await pool.query('SELECT * FROM websites');
-        return res.rows;
+        const websiteRepo = AppDataSource.getRepository(Website);
+        return await websiteRepo.find();
       } catch (err) {
         console.error('Error fetching websites:', err);
         throw new Error(`Error fetching websites: ${err.message}`);
@@ -54,9 +59,10 @@ const resolvers = {
     },
     getWebsiteStatus: async (_: unknown, { id }: { id: string }) => {
       try {
-        const res = await pool.query('SELECT * FROM websites WHERE id = $1', [id]);
-        if (res.rows.length === 0) throw new Error('Website not found');
-        return res.rows[0];
+        const websiteRepo = AppDataSource.getRepository(Website);
+        const website = await websiteRepo.findOneBy({ id });
+        if (!website) throw new Error('Website not found');
+        return website;
       } catch (err) {
         console.error(`Error fetching website status for ID ${id}:`, err);
         throw new Error(`Error fetching website status: ${err.message}`);
@@ -66,11 +72,9 @@ const resolvers = {
   Mutation: {
     addWebsite: async (_: unknown, { name, url }: { name: string; url: string }) => {
       try {
-        const res = await pool.query(
-          'INSERT INTO websites (name, url, status) VALUES ($1, $2, $3) RETURNING *',
-          [name, url, 'unknown']
-        );
-        return res.rows[0];
+        const websiteRepo = AppDataSource.getRepository(Website);
+        const newWebsite = websiteRepo.create({ name, url, status: 'unknown' });
+        return await websiteRepo.save(newWebsite);
       } catch (err) {
         console.error('Error adding website:', err);
         throw new Error(`Error adding website: ${err.message}`);
@@ -78,8 +82,9 @@ const resolvers = {
     },
     deleteWebsite: async (_: unknown, { id }: { id: string }) => {
       try {
-        const res = await pool.query('DELETE FROM websites WHERE id = $1 RETURNING *', [id]);
-        return res.rowCount > 0;
+        const websiteRepo = AppDataSource.getRepository(Website);
+        const result = await websiteRepo.delete(id);
+        return result.affected! > 0;
       } catch (err) {
         console.error(`Error deleting website with ID ${id}:`, err);
         throw new Error(`Error deleting website: ${err.message}`);
@@ -91,14 +96,17 @@ const resolvers = {
 // Check website status periodically
 const checkWebsiteStatus = async () => {
   try {
-    const websites = await pool.query('SELECT * FROM websites');
-    for (const website of websites.rows) {
+    const websiteRepo = AppDataSource.getRepository(Website);
+    const websites = await websiteRepo.find();
+    for (const website of websites) {
       try {
         const response = await axios.get(website.url);
         const status = response.status === 200 ? 'online' : 'offline';
-        await pool.query('UPDATE websites SET status = $1 WHERE id = $2', [status, website.id]);
+        website.status = status;
+        await websiteRepo.save(website);
       } catch (err) {
-        await pool.query('UPDATE websites SET status = $1 WHERE id = $2', ['offline', website.id]);
+        website.status = 'offline';
+        await websiteRepo.save(website);
       }
     }
   } catch (err) {
@@ -132,13 +140,18 @@ app.get('/', (req: Request, res: Response) => {
 
 // Start the Apollo Server and apply the middleware to Express
 async function startServer() {
-  await apolloServer.start();
-  apolloServer.applyMiddleware({ app });
+  try {
+    await AppDataSource.initialize(); // Initialize TypeORM DataSource
+    await apolloServer.start();
+    apolloServer.applyMiddleware({ app });
 
-  // Start the Express server
-  app.listen({ port: 5000 }, () =>
-    console.log(`🚀 Server ready at http://localhost:5000${apolloServer.graphqlPath}`)
-  );
+    // Start the Express server
+    app.listen({ port: 5000 }, () =>
+      console.log(`🚀 Server ready at http://localhost:5000${apolloServer.graphqlPath}`)
+    );
+  } catch (err) {
+    console.error('Failed to start the server:', err);
+  }
 }
 
 //  Allowing server to detect all routes from React Router
@@ -147,6 +160,4 @@ app.get('*', (req: Request, res: Response) => {
 });
 
 // Initialize the server
-startServer().catch((err) => {
-  console.error('Failed to start the server:', err);
-});
+startServer();
