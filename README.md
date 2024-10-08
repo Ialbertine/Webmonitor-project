@@ -37,7 +37,7 @@ This is a Full-stack web application that allows users to add websites to monito
 
 ### Here is the Link to the deployed version:
 
-https://fullstack-webmonitor.vercel.app/
+https://fullstackwebmonitor.vercel.app/
 
 ## Authors:
 
