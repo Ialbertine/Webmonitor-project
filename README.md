@@ -17,14 +17,15 @@ This is a Full-stack web application that allows users to add websites to monito
 
 - React.js with TypeScript
 - Material-UI for User Interface
-- Apollo Client for GraphQL API consumption
+- Apollo Client for managing GraphQL API
+- React Query for handling fetching cashing and syncing server state
 
 ### Backend:
 
 - Node.js + Express.js for Server Setup
 - GraphQL with Apollo Server for API
 - PostgreSQL for the Database
-- Cron job to check the status of websites periodically
+- Cron job to check the Status of websites periodically
 
 ## Architecture
 
