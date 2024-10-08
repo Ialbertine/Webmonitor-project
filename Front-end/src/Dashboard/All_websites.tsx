@@ -25,7 +25,7 @@ const All_Websites: React.FC = () => {
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
-    // Filter online websites
+    // Filter online websites appearing
     const onlineWebsites = data.websites.filter(
       (website) => website.status.toLowerCase() === "online"
     );
