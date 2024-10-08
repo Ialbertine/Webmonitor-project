@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useQuery } from "@apollo/client";
 import { Box, Stack, TextField } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { GET_ALL_WEBSITES } from "../graphql/queries";
+import { GET_ALL_WEBSITES } from "../graphql/graphqlQueries";
 
 interface Website {
   id: number;
@@ -25,7 +25,7 @@ const All_Websites: React.FC = () => {
   const filteredRows = useMemo(() => {
     if (!data || !data.websites) return [];
 
-    // Filter online websites
+    // Filter online websites appearing
     const onlineWebsites = data.websites.filter(
       (website) => website.status.toLowerCase() === "online"
     );

@@ -1,5 +1,7 @@
-import { gql } from "@apollo/client";
+// src/graphqlQueries.ts
+import { gql } from '@apollo/client';
 
+// Get all websites
 export const GET_ALL_WEBSITES = gql`
   query GetAllWebsites {
     websites {
@@ -11,9 +13,11 @@ export const GET_ALL_WEBSITES = gql`
   }
 `;
 
+
+// Get website by ID
 export const GET_WEBSITE_BY_ID = gql`
   query GetWebsiteById($id: ID!) {
-    getWebsiteStatus(id: $id) {
+    website(id: $id) {
       id
       name
       url
@@ -22,17 +26,19 @@ export const GET_WEBSITE_BY_ID = gql`
   }
 `;
 
+// Add new website
 export const ADD_WEBSITE = gql`
-  mutation AddWebsite($name: String!, $url: String!) {
-    addWebsite(name: $name, url: $url) {
+  mutation AddWebsite($name: String!, $url: String! ) {
+    addWebsite(name: $name, url: $url ) {
       id
       name
       url
-      status
     }
   }
 `;
 
+
+// Delete website
 export const DELETE_WEBSITE = gql`
   mutation DeleteWebsite($id: ID!) {
     deleteWebsite(id: $id)

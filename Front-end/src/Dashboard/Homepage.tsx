@@ -1,71 +1,75 @@
-import React, { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@apollo/client";
+import React, { useState, useEffect } from "react";
 import { IconButton, Box, Stack, TextField } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { GET_ALL_WEBSITES, DELETE_WEBSITE } from "../graphql/queries";
-
-interface Website {
-  id: number;
-  name: string;
-  url: string;
-  status: string;
-}
+import { useFetchWebsites, useDeleteWebsite } from "../graphql/useWebsiteQueries";
 
 const Homepage: React.FC = () => {
-  const { loading, error, data } = useQuery<{ websites: Website[] }>(
-    GET_ALL_WEBSITES,
-    {
-      fetchPolicy: "network-only",
-    }
-  );
-  const [deleteWebsite] = useMutation<
-    { deleteWebsite: Website },
-    { id: string }
-  >(DELETE_WEBSITE);
-
+  const [success, setSuccess] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 5,
     page: 0,
   });
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [websites, setWebsites] = useState<any[]>([]); // Local state for websites
 
-  // Handle Delete Action
+  // Fetch websites using the custom hook
+  const { data, isLoading, error } = useFetchWebsites();
+
+  // Use the delete mutation hook
+  const deleteWebsite = useDeleteWebsite();
+
+  // Update local state when fetched data changes
+  useEffect(() => {
+    if (data) {
+      setWebsites(data);
+    }
+  }, [data]);
+
   const handleDelete = async (id: string) => {
     try {
-      await deleteWebsite({
-        variables: { id },
-        refetchQueries: [{ query: GET_ALL_WEBSITES }],
-      });
+      await deleteWebsite.mutateAsync(id);
+      setSuccess("Website deleted successfully!");
+
+      // Remove the deleted website from the local state
+      setWebsites((prevWebsites) => prevWebsites.filter((website) => website.id !== id));
+
+      setTimeout(() => {
+        setSuccess(null);
+      }, 3000);
     } catch (error) {
       console.error("Error deleting website:", error);
+      setErrorMessage("Failed to delete website. Please try again.");
     }
   };
 
-  // Filter rows based on search term and sort by id
-  const filteredRows = useMemo(() => {
-    if (!data || !data.websites) return [];
-    return data.websites
-      .map((website) => ({
-        id: Number(website.id) || 0, // Convert id to a number
-        name: website.name || "No Name",
-        url: website.url || "No URL",
-        status: website.status || "No Status",
-      }))
-      .filter((website) => {
-        return website.name.toLowerCase().includes(searchTerm.toLowerCase());
-      })
-      .sort((a, b) => a.id - b.id); // Sort by id in ascending order
-  }, [data, searchTerm]);
+  // Handle loading and error states
+  if (isLoading) {
+    return (
+      <p className="text-center p-4 text-2xl text-[green]">Loading...</p>
+    );
+  }
 
-  // Column Definitions
+  if (error) {
+    return (
+      <p className="text-center p-4 text-2xl text-[red]">
+        Error: {error.message}
+      </p>
+    );
+  }
+
+  const filteredWebsites = websites.filter((website) =>
+    website.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const columns: GridColDef[] = [
     {
       field: "id",
       headerName: "ID",
       width: 100,
-      flex: 1, // Makes the column responsive
+      flex: 1,
       align: "center",
       headerAlign: "center",
     },
@@ -73,7 +77,7 @@ const Homepage: React.FC = () => {
       field: "name",
       headerName: "Name",
       width: 200,
-      flex: 2, 
+      flex: 2,
       align: "center",
       headerAlign: "center",
     },
@@ -81,7 +85,7 @@ const Homepage: React.FC = () => {
       field: "url",
       headerName: "URL",
       width: 250,
-      flex: 2, 
+      flex: 2,
       align: "center",
       headerAlign: "center",
     },
@@ -89,7 +93,7 @@ const Homepage: React.FC = () => {
       field: "status",
       headerName: "Status",
       width: 150,
-      flex: 1, 
+      flex: 1,
       align: "center",
       headerAlign: "center",
     },
@@ -113,9 +117,6 @@ const Homepage: React.FC = () => {
     },
   ];
 
-  if (loading) return <p className="text-center p-4 text-2xl text-[green]">Loading...</p>;
-  if (error) return <p className="text-center p-4 text-2xl text-[red]">Error: {error.message}</p>;
-
   return (
     <Box
       display="flex"
@@ -125,16 +126,13 @@ const Homepage: React.FC = () => {
       minHeight="100vh"
       padding={4}
     >
+      {errorMessage && <p className="text-center text-red-600">{errorMessage}</p>}
+      {success && <p className="text-center text-green-600">{success}</p>}
       <div className="text-center">
         <p className="text-3xl mb-7 text-[#1077ec] font-semibold">All Websites</p>
       </div>
       <Stack spacing={3} alignItems="center" width="100%" maxWidth="1200px">
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          width="100%"
-        >
+        <Stack direction="row" justifyContent="space-between" alignItems="center" width="100%">
           <TextField
             label="Search"
             variant="outlined"
@@ -145,7 +143,7 @@ const Homepage: React.FC = () => {
         </Stack>
         <Box sx={{ width: "100%", backgroundColor: "#fff" }}>
           <DataGrid
-            rows={filteredRows}
+            rows={filteredWebsites}
             columns={columns}
             paginationModel={paginationModel}
             onPaginationModelChange={setPaginationModel}

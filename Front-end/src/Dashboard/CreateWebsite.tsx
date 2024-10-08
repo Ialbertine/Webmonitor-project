@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Stack } from "@mui/material";
 import { useMutation } from "@apollo/client";
-import { ADD_WEBSITE, GET_ALL_WEBSITES } from "../graphql/queries"; // Import the mutation and the query for refetch
+import { ADD_WEBSITE, GET_ALL_WEBSITES } from "../graphql/graphqlQueries";
 
 interface CreateProps {
   onSubmit: (newData: { name: string; url: string }) => void;
@@ -19,26 +19,37 @@ const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
   });
 
   const handleSubmit = async () => {
-    if (name && url) {
-      try {
-        const result = await addWebsite({ variables: { name, url } });
-
-        if (result.data) {
-          console.log("Website added successfully");
-          onSubmit(result.data.addWebsite);
-        }
-
+    if (!name || !url) {
+      console.error("Please enter a name and URL");
+      return;
+    }
+  
+    try {
+      console.log("Submitting with variables:", { name, url });
+  
+      const result = await addWebsite({ variables: { name, url } });
+  
+      if (result?.data) {
+        console.log("Website added successfully:", result.data);
+        onSubmit(result.data.addWebsite);
+  
+        // Show success message
         setSuccessMessage("Website added successfully");
         setTimeout(() => setSuccessMessage(null), 5000);
-
-        // Reset the form fields after submission
+  
+        // Reset form fields
         setName("");
         setUrl("");
-      } catch (err) {
-        console.error("Error adding website:", err);
+      } else {
+        // Handle case when the result has no data
+        throw new Error("No data returned from the server. Please try again.");
       }
+    } catch (err: any) {
+      console.error("Error adding website:", err.message || "Unknown error occurred");
     }
   };
+  
+  
 
   return (
     <Box
@@ -56,6 +67,7 @@ const CreateWebsite: React.FC<CreateProps> = ({ onSubmit, onCancel }) => {
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
+      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
       {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
       <h2 className="text-center text-2xl text-[#2d7bc9] font-semibold">
         Add New Website
